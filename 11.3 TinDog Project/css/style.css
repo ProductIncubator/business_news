@@ -32,6 +32,7 @@
   margin-right: 10px;
 }
 
-#footer {
-  border-top: none;
+
+.footer-no-border {
+  border: none;
 }
