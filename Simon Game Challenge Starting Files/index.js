@@ -12,7 +12,9 @@ function nextSequence() {
   const randomNumber = Math.floor(Math.random() * 4);
   const randomChosenColor = buttonColors[randomNumber];
   gamePattern.push(randomChosenColor);
-  flashButton(randomChosenColor);
+  setTimeout(() => {
+    flashButton(randomChosenColor);
+  }, 1000);
 }
 
 function flashButton(color) {
@@ -30,18 +32,20 @@ function playSound(name) {
 }
 
 function handleButtonClick(event) {
-  const userChosenColor = event.target.id;
-  userClickedPattern.push(userChosenColor);
-  flashButton(userChosenColor);
-  playSound(userChosenColor);
-  checkAnswer(userClickedPattern.length - 1);
+  if (started) {
+    const userChosenColor = event.target.id;
+    userClickedPattern.push(userChosenColor);
+    flashButton(userChosenColor);
+    playSound(userChosenColor);
+    checkAnswer(userClickedPattern.length - 1);
+  }
 }
 
 function checkAnswer(currentLevel) {
   if (userClickedPattern[currentLevel] === gamePattern[currentLevel]) {
     if (userClickedPattern.length === gamePattern.length) {
+      userClickedPattern = [];
       setTimeout(() => {
-        userClickedPattern = [];
         nextSequence();
       }, 1000);
     }
@@ -63,7 +67,7 @@ function startOver() {
   started = false;
 }
 
-document.addEventListener('keydown', function() {
+document.addEventListener('keydown', function () {
   if (!started) {
     started = true;
     nextSequence();
