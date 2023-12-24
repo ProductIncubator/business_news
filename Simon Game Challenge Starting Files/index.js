@@ -7,19 +7,20 @@ var level = 0;
 
 
 
-$(".btn").click(function() {
-
-  var userChosenColour = $(this).attr("id");
-  userClickedPattern.push(userChosenColour);
-  playSound(userChosenColour);
-  animatePress(userChosenColour);
-});
+$(".btn").click(userChoice());
 
 function nextSequence() { 
   var randomNumber = Math.floor(Math.random() * 3);
   var randomChosenColour = buttonColours[randomNumber];
   flash(randomChosenColour);
   playSound(randomChosenColour);
+}
+
+function userChoice() {
+  var userChosenColour = $(this).attr("id");
+  userClickedPattern.push(userChosenColour);
+  playSound(userChosenColour);
+  animatePress(userChosenColour);
 }
 
 function playSound(name_of_sound){ 
