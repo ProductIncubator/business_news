@@ -1,0 +1,28 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "test for npm creation",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ismat-Samadov/web_development.git"
+  },
+  "keywords": [
+    "testNPM"
+  ],
+  "author": "Ismat Samadov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Ismat-Samadov/web_development/issues"
+  },
+  "homepage": "https://github.com/Ismat-Samadov/web_development#readme",
+  "dependencies": {
+    "silly": "^0.2.0",
+    "sillyname": "^0.1.0",
+    "superheroes": "^3.0.0"
+  }
+}
