@@ -7,6 +7,10 @@ import path from "path";
 const app = express();
 const port = 3000;
 
+// Define __filename and __dirname in ES module scope
+const __filename = new URL(import.meta.url).pathname;
+const __dirname = path.dirname(__filename);
+
 // Set EJS as the view engine
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
