@@ -11,14 +11,17 @@ const recipeJSON =
 
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
+app.set("view engine", "ejs");
+
 
 app.get("/", (req, res) => {
   res.render("index.ejs");
 });
 
+
 app.post("/recipe", (req, res) => {
-  //Step 3: Write your code here to make this behave like the solution website.
-  //Step 4: Add code to views/index.ejs to use the recieved recipe object.
+  const recipeObject = JSON.parse(recipeJSON);
+  res.render("index.ejs", { recipe: recipeObject });
 });
 
 app.listen(port, () => {
