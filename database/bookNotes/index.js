@@ -4,19 +4,19 @@ const pg = require('pg');
 const app = express();
 const port = 3000;
 
-// Set up PostgreSQL connection
-const pool = new pg.Pool({
-  user: 'your_postgres_user',
+const db = new pg.Client({
+  user: 'postgres',
   host: 'localhost',
-  database: 'your_database_name',
-  password: 'your_database_password',
+  database: 'notes',
+  password: 'root',
   port: 5432,
 });
+
+db.connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 
-// Example route to render the home page
 app.get('/', async (req, res) => {
   try {
     const client = await pool.connect();
@@ -30,7 +30,6 @@ app.get('/', async (req, res) => {
   }
 });
 
-// Start the server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
