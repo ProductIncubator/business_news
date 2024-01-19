@@ -6,12 +6,7 @@ CREATE TABLE book_note (
     note_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-
-
-
 INSERT INTO book_note (book_name, note, note_auth_name)
 VALUES ('Robinzon Kruzo', 'Stupidest book i have ever know', 'Ismat Samadov');
-
-
 INSERT INTO book_note (book_name, note, note_auth_name)
 VALUES ('Think and Grow', 'coolest book', 'Ismat Samadov');
