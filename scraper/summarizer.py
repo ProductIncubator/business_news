@@ -40,7 +40,7 @@ class GeminiSummarizer:
             genai.configure(api_key=self.api_key)
 
             # Use Gemini 1.5 Flash (fastest, highest rate limits)
-            self.model = genai.GenerativeModel('gemini-1.5-flash')
+            self.model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
 
             print("[SUCCESS] Gemini API initialized (gemini-1.5-flash)")
 
