@@ -195,76 +195,57 @@ RELEVANT XƏBƏRLƏR:"""
                 for s in sources_stats
             ])
 
-            # Banking intelligence prompt
+            # Banking intelligence prompt - SHORT and CLEAN format
             prompt = f"""Sən Azərbaycan bankında Business Analyst üçün strateji məsləhətçisən.
-Aşağıdakı bank sektoruna aid xəbərlərdən ACTIONABLE banking intelligence report hazırla.
+Aşağıdakı bank sektoruna aid xəbərlərdən QISA və KONKRET banking intelligence report hazırla.
 
-MƏNBƏLƏR:
-{sources_overview}
-
-BANK SEKTORUNA AİD XƏBƏRLƏR ({len(relevant_articles)}/{len(articles)}):
+BANK XƏBƏRLƏRI ({len(relevant_articles)}/{len(articles)}):
 {articles_text}
 
-REPORT STRUKTURU:
+REPORT FORMATI (QISA VƏ SADƏ):
 
-## 📊 İCMAL ÖZƏTİ
-[2-3 cümlədə əsas trendləri və kritik məqamları qeyd et]
+🔥 ƏSAS TRENDLƏR
+(1-2 cümlə, ən vacib nə baş verir)
 
-## 🏦 BANK SEKTORU ANALİZİ
+💰 MALİYYƏ VƏ MAKRO
+• İnflyasiya/faiz dərəcələri: [faktlar]
+• Bank nəticələri: [rəqəmlər]
+• Kredit/depozit bazarı: [dəyişikliklər]
 
-### Makroiqtisadi Mühit
-- İnflyasiya, faiz dərəcələri, iqtisadi artım
-- Bank sektoruna potensial təsiri
+📋 TƏNZİMLƏMƏ VƏ QANUN
+• Mərkəzi Bank qərarları: [nə dəyişdi]
+• Yeni tələblər: [nə etmək lazımdır]
 
-### Tənzimləmə və Qanunvericilik
-- Yeni qanunlar, Mərkəzi Bank qərarları
-- Compliance tələbləri
+🚀 İMKANLAR
+• [İmkan 1 - konkret addım]
+• [İmkan 2 - konkret addım]
 
-### Bazar Dinamikası
-- Bank nəticələri, kapital artımı, kredit portfeli
-- Rəqabət mühiti, bazar payı dəyişiklikləri
+⚠️ RİSKLƏR
+• [Risk 1 - nə təhlükə yaradır]
+• [Risk 2 - nə təhlükə yaradır]
 
-### Rəqəmsal Transformasiya
-- Fintech, yeni məhsullar, texnologiya təbənniyyatı
+✅ NƏ ETMƏK LAZIM
+Bu həftə:
+1. [Konkret addım]
+2. [Konkret addım]
 
-### Beynəlxalq Əməkdaşlıq
-- Xarici maliyyələşmə, beynəlxalq təşkilatlarla münasibətlər
+Bu ay:
+1. [Strateji təklif]
+2. [Strateji təklif]
 
-## 💡 STRATEJİ RİSKLƏR VƏ İMKANLAR
+👀 İZLƏ
+• [Trend 1]
+• [Trend 2]
 
-### Risklər ⚠️
-1. [Risk 1]: Təsvir və potensial təsir
-2. [Risk 2]: Təsvir və potensial təsir
+VACIB QAYDALAR:
+- Çox qısa və konkret yaz (maksimum 15-20 sətir)
+- Hər bölmədə maksimum 2-3 punkt
+- Emojilər sadə saxla (💰📋🚀⚠️✅👀)
+- Heç bir markdown simvol işlətmə (###, **, və s.)
+- Rəqəmlər və faktlar ver, söz-söhbət yox
+- Azərbaycan dilində sadə professional dil
 
-### İmkanlar ✅
-1. [İmkan 1]: Necə istifadə etmək olar
-2. [İmkan 2]: Necə istifadə etmək olar
-
-## 🎯 TÖVSİYƏLƏR VƏ ACTIONABLE INSIGHTS
-
-### Qısa Müddətli (1-3 ay)
-1. [Konkret təklif və addımlar]
-2. [Konkret təklif və addımlar]
-
-### Orta Müddətli (3-6 ay)
-1. [Strateji tövsiyə]
-2. [Strateji tövsiyə]
-
-### İzləməli Məsələlər 👁️
-- [İzləməli trend 1]
-- [İzləməli trend 2]
-
-## 📈 ƏSAS GÖSTƏRİCİLƏR
-[Xəbərlərdən çıxan əsas rəqəmlər və statistika]
-
-ÖNEMLİ:
-- Konkret, actionable olsun
-- Business impact-ə fokuslan
-- Rəqəmləri və faktları istifadə et
-- Azərbaycan dilində professional ton
-- Banking terminologiyasını düzgün işlət
-
-BANKING INTELLIGENCE REPORT:"""
+REPORT:"""
 
             # Generate banking intelligence
             response = self.model.generate_content(prompt)

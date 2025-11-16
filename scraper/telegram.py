@@ -158,70 +158,41 @@ class TelegramReporter:
             duration = (stats['end_time'] - stats['start_time']).total_seconds()
             duration_str = self.format_duration(duration)
 
-            # Build header
+            # Build clean header
+            success_emoji = "✅" if stats['total_saved'] > 0 else "⚠️"
             message_parts = [
-                "📰 <b>News Scraping Report</b>",
-                "━━━━━━━━━━━━━━━━━━━━",
+                f"{success_emoji} <b>Banking News Report</b>",
+                f"⏱ {duration_str} | 💾 {stats['total_saved']} yeni xəbər",
                 ""
             ]
 
-            # Overall stats
-            success_emoji = "✅" if stats['total_saved'] > 0 else "⚠️"
-            message_parts.extend([
-                f"{success_emoji} <b>Summary</b>",
-                f"🕐 Duration: {duration_str}",
-                f"📊 Sources scraped: {len(stats['sources'])}",
-                f"📝 Total articles found: {stats['total_found']}",
-                f"💾 New articles saved: {stats['total_saved']}",
-                f"⏭ Duplicates skipped: {stats['total_skipped']}",
-                ""
-            ])
-
-            # Per-source breakdown
+            # Per-source breakdown (compact)
             if stats['sources']:
-                message_parts.append("📚 <b>By Source</b>")
-                for source in stats['sources']:
-                    source_emoji = "📌"
-                    if source['saved'] == 0:
-                        source_emoji = "⚪️"
-                    elif source['saved'] > 10:
-                        source_emoji = "🟢"
-                    elif source['saved'] > 0:
-                        source_emoji = "🟡"
-
-                    message_parts.append(
-                        f"{source_emoji} <b>{source['name']}</b>: "
-                        f"{source['saved']} new / {source['total']} total"
-                    )
+                sources_line = " | ".join([
+                    f"{source['name']}: {source['saved']}"
+                    for source in stats['sources']
+                ])
+                message_parts.append(f"📚 {sources_line}")
                 message_parts.append("")
 
-            # Session summary (if available) - full summary, no truncation
-            # Message will be automatically split if needed
+            # Banking intelligence (if available)
             if stats.get('session_summary'):
                 message_parts.extend([
-                    "📋 <b>Banking Intelligence Report</b>",
+                    "🏦 <b>Banking Intelligence</b>",
+                    "",
                     stats['session_summary'],
                     ""
                 ])
 
-            # Errors (if any)
+            # Errors (compact)
             if stats.get('errors'):
-                message_parts.extend([
-                    "❌ <b>Errors</b>",
-                    f"⚠️ {len(stats['errors'])} error(s) occurred"
-                ])
-                for error in stats['errors'][:3]:  # Show max 3 errors
-                    message_parts.append(f"  • {error}")
-                if len(stats['errors']) > 3:
-                    message_parts.append(f"  • ... and {len(stats['errors']) - 3} more")
+                error_count = len(stats['errors'])
+                message_parts.append(f"⚠️ {error_count} xəta baş verdi")
                 message_parts.append("")
 
-            # Footer
-            timestamp = stats['end_time'].strftime("%Y-%m-%d %H:%M:%S UTC")
-            message_parts.extend([
-                "━━━━━━━━━━━━━━━━━━━━",
-                f"🕒 {timestamp}"
-            ])
+            # Clean footer
+            timestamp = stats['end_time'].strftime("%H:%M, %d.%m.%Y")
+            message_parts.append(f"🕒 {timestamp}")
 
             message = "\n".join(message_parts)
 
