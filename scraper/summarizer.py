@@ -32,7 +32,8 @@ class GeminiSummarizer:
     def __init__(self):
         self.api_key = os.getenv('GEMINI_API_KEY')
         self.enabled = bool(self.api_key)
-        self.model = None
+        self.client = None
+        self.model_name = 'gemini-2.0-flash-exp'
 
         # Rate limiting
         self.requests_per_minute = 15
@@ -41,23 +42,21 @@ class GeminiSummarizer:
         if not self.enabled:
             print("[INFO] Summarization disabled (missing GEMINI_API_KEY)")
         else:
-            self._initialize_model()
+            self._initialize_client()
 
-    def _initialize_model(self):
-        """Initialize Gemini model"""
+    def _initialize_client(self):
+        """Initialize Gemini client with new SDK"""
         try:
-            import google.generativeai as genai
+            from google import genai
 
-            genai.configure(api_key=self.api_key)
+            # Create client (automatically reads GEMINI_API_KEY or GOOGLE_API_KEY)
+            self.client = genai.Client(api_key=self.api_key)
 
-            # Use Gemini Flash Latest (fast, stable, good for summaries)
-            self.model = genai.GenerativeModel('gemini-flash-latest')
-
-            print("[SUCCESS] Gemini API initialized (gemini-flash-latest)")
+            print(f"[SUCCESS] Gemini API initialized ({self.model_name})")
 
         except ImportError:
-            print("[ERROR] google-generativeai package not installed")
-            print("[INFO] Run: pip install google-generativeai")
+            print("[ERROR] google-genai package not installed")
+            print("[INFO] Run: pip install google-genai")
             self.enabled = False
 
         except Exception as e:
@@ -144,7 +143,10 @@ Cavabı bu formatda ver: 1,3,5,7 (vergüllə ayrılmış nömrələr, heç bir i
 
 RELEVANT XƏBƏRLƏR:"""
 
-            response = self.model.generate_content(filter_prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=filter_prompt
+            )
             relevant_indices_str = response.text.strip()
 
             # Parse indices
@@ -257,7 +259,10 @@ VACIB QAYDALAR:
 PROFESSIONAL BANKING INTELLIGENCE REPORT:"""
 
             # Generate banking intelligence
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
             summary = response.text.strip()
 
             print(f"[SUCCESS] Created banking intelligence report from {len(relevant_articles)} relevant articles")
