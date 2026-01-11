@@ -293,12 +293,20 @@ npm install
 
 ### 2. Configure Environment
 
-Create `.env.local` in root:
+Create `.env` in root:
 ```env
 DATABASE_URL=postgresql://user:password@host:port/dbname
 GEMINI_API_KEY=your_gemini_api_key
 TELEGRAM_BOT_TOKEN=your_bot_token
-TELEGRAM_CHAT_ID=your_chat_id
+
+# Telegram chat IDs (separate channels for success/failure)
+CHANNEL_CHAT_ID=-1003425585410          # Public channel for successful scraping results
+NOTIFICATION_CHAT=6192509415,-4879313859 # Personal chats for errors, tests, and notifications (comma-separated)
+
+# Optional: Gemini API retry configuration for handling 503/overload errors
+GEMINI_MAX_RETRIES=3                     # Number of retry attempts (default: 3)
+GEMINI_INITIAL_RETRY_DELAY=2             # Initial delay in seconds (default: 2)
+GEMINI_MAX_RETRY_DELAY=30                # Maximum delay in seconds (default: 30)
 ```
 
 Create `frontend/.env.local`:
@@ -540,18 +548,32 @@ Each scraping session generates:
 - Action items and recommendations
 
 ### 3. Telegram Report
+
+The system uses two separate Telegram channels:
+
+**Public Channel (CHANNEL_CHAT_ID)** - Receives successful scraping results:
 ```
-📊 BANK SEKTORU XÜLASƏSİ
-24 Dekabr 2025, 12:00
+📊 Azərbaycan Bank Sektoru
+24.12.2025
 
-✅ Yeni xəbərlər: 45
-📰 Ümumi xəbərlər: 45
-🌐 Mənbələr: 8
-⏱ İcra müddəti: 1m 23s
-
-🤖 AI ANALİZ:
+🔥 ƏSAS TRENDLƏR
 [Banking intelligence report...]
 ```
+
+**Notification Chats (NOTIFICATION_CHAT)** - Receives errors and test messages:
+```
+⚠️ Scraping Incomplete
+━━━━━━━━━━━━━━━━━━━━
+
+📅 24.12.2025
+⏱ Duration: 1m 23s
+
+❌ AI summary creation failed
+```
+
+This ensures that:
+- Users in the public channel only see quality banking intelligence reports
+- Errors and test messages go to personal chats for debugging
 
 ### 4. Frontend Display
 - Homepage with paginated summary cards

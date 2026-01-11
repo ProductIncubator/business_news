@@ -102,6 +102,7 @@ async def main():
     all_new_articles = []
     errors = []
     end_time = None
+    success = False  # Track if scraping completed successfully
 
     # Initialize database connection
     db = Database()
@@ -206,6 +207,9 @@ async def main():
         print(f"  - AI summary created and saved")
         print(f"  - Duration: {duration:.1f}s")
 
+        # Mark as successful
+        success = True
+
     except KeyboardInterrupt:
         print("\n\n[INFO] Scraping interrupted by user")
         errors.append("Scraping interrupted by user")
@@ -247,7 +251,10 @@ async def main():
             'errors': errors
         }
 
-        telegram.send_scraping_report(report_stats)
+        # Send to appropriate chat based on success
+        # success=True → CHANNEL_CHAT_ID (public channel)
+        # success=False → NOTIFICATION_CHAT (personal chats for errors/testing)
+        telegram.send_scraping_report(report_stats, success=success)
 
 
 if __name__ == "__main__":

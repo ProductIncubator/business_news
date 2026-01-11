@@ -28,6 +28,11 @@ class GeminiSummarizer:
     - 1 million tokens per minute
     - 1500 requests per day
     - Using google-genai SDK v1beta API
+
+    Retry configuration (for 503/overload errors):
+    - Configurable via environment variables
+    - Default: 3 retries with exponential backoff (2s, 4s, 8s)
+    - See GEMINI_MAX_RETRIES, GEMINI_INITIAL_RETRY_DELAY, GEMINI_MAX_RETRY_DELAY
     """
 
     def __init__(self):
@@ -40,6 +45,12 @@ class GeminiSummarizer:
         self.requests_per_minute = 15
         self.request_times = []
         self.quota_exhausted = False  # Track if daily quota is exhausted
+
+        # Retry configuration for handling transient errors (503, overload)
+        # Can be configured via environment variables
+        self.max_retries = int(os.getenv('GEMINI_MAX_RETRIES', '3'))
+        self.initial_retry_delay = float(os.getenv('GEMINI_INITIAL_RETRY_DELAY', '2'))  # seconds
+        self.max_retry_delay = float(os.getenv('GEMINI_MAX_RETRY_DELAY', '30'))  # seconds
 
         if not self.enabled:
             print("[INFO] Summarization disabled (missing GEMINI_API_KEY)")
@@ -89,6 +100,75 @@ class GeminiSummarizer:
         # Record this request
         self.request_times.append(time.time())
 
+    def _call_with_retry(self, prompt: str, operation_name: str = "API call"):
+        """
+        Call Gemini API with exponential backoff retry for transient errors
+
+        Args:
+            prompt: The prompt to send to Gemini
+            operation_name: Name of the operation for logging
+
+        Returns:
+            API response object
+
+        Raises:
+            Exception: If all retries fail or quota exhausted
+        """
+        last_error = None
+
+        for attempt in range(self.max_retries + 1):
+            try:
+                self._wait_for_rate_limit()
+
+                response = self.client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt
+                )
+
+                # Success!
+                if attempt > 0:
+                    print(f"[SUCCESS] {operation_name} succeeded on attempt {attempt + 1}")
+
+                return response
+
+            except Exception as e:
+                error_msg = str(e)
+                last_error = e
+
+                # Check for quota exhaustion - don't retry these
+                if '429' in error_msg or 'RESOURCE_EXHAUSTED' in error_msg or 'quota' in error_msg.lower():
+                    self.quota_exhausted = True
+                    print(f"[ERROR] Gemini quota exhausted: {e}")
+                    raise e
+
+                # Check for transient errors (503, overload, UNAVAILABLE)
+                is_transient = (
+                    '503' in error_msg or
+                    'UNAVAILABLE' in error_msg or
+                    'overload' in error_msg.lower() or
+                    'temporarily' in error_msg.lower()
+                )
+
+                if is_transient and attempt < self.max_retries:
+                    # Calculate exponential backoff delay
+                    delay = min(
+                        self.initial_retry_delay * (2 ** attempt),
+                        self.max_retry_delay
+                    )
+
+                    print(f"[WARNING] {operation_name} failed (attempt {attempt + 1}/{self.max_retries + 1}): {error_msg}")
+                    print(f"[INFO] Retrying in {delay}s...")
+                    time.sleep(delay)
+                    continue
+                else:
+                    # Non-transient error or max retries reached
+                    if attempt == self.max_retries:
+                        print(f"[ERROR] {operation_name} failed after {self.max_retries + 1} attempts: {error_msg}")
+                    raise e
+
+        # Should never reach here, but just in case
+        raise last_error if last_error else Exception("Unknown error in retry logic")
+
     def filter_relevant_articles(self, articles: List[Dict]) -> List[Dict]:
         """
         Filter articles to keep only those relevant to banking/finance sector
@@ -109,7 +189,6 @@ class GeminiSummarizer:
 
         try:
             print(f"\n[INFO] Filtering {len(articles)} articles for banking/finance relevance...")
-            self._wait_for_rate_limit()
 
             # Prepare articles for filtering
             articles_list = []
@@ -150,10 +229,8 @@ QAYDA: Əgər xəbər BANKLAR, KREDİT, DEPOZIT, FAİZ, MƏZƏNNƏ və ya MALİY
 
 BİRBAŞA bank/maliyyə xəbərlərinin nömrələri (vergüllə): """
 
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=filter_prompt
-            )
+            # Call API with retry logic
+            response = self._call_with_retry(filter_prompt, "Article filtering")
 
             # Check if response has text
             if not response or not hasattr(response, 'text') or response.text is None:
@@ -177,12 +254,9 @@ BİRBAŞA bank/maliyyə xəbərlərinin nömrələri (vergüllə): """
 
         except Exception as e:
             error_msg = str(e)
-            # Check if it's a quota error
-            if '429' in error_msg or 'RESOURCE_EXHAUSTED' in error_msg or 'quota' in error_msg.lower():
-                self.quota_exhausted = True
-                print(f"[ERROR] Gemini quota exhausted: {e}")
-                print(f"[WARNING] AI filtering disabled for this session")
-            else:
+            # Quota errors are already handled in _call_with_retry
+            # Just fall back to using all articles
+            if not self.quota_exhausted:
                 print(f"[ERROR] Filtering failed: {e}")
             print(f"[INFO] Using all articles as fallback")
             return articles
@@ -219,8 +293,6 @@ BİRBAŞA bank/maliyyə xəbərlərinin nömrələri (vergüllə): """
                 print(f"[WARNING] Only {len(relevant_articles)}/{len(articles)} articles passed filter - continuing with available articles")
 
             # STEP 2: Create banking intelligence report
-            self._wait_for_rate_limit()
-
             # Prepare article summaries WITHOUT source names (for public channel)
             article_summaries = []
             for i, article in enumerate(relevant_articles, 1):
@@ -288,11 +360,8 @@ VACIB QAYDALAR:
 
 PROFESSIONAL BANKING INTELLIGENCE REPORT:"""
 
-            # Generate banking intelligence
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=prompt
-            )
+            # Generate banking intelligence with retry logic
+            response = self._call_with_retry(prompt, "Summary generation")
 
             # Check if response has text
             if not response or not hasattr(response, 'text') or response.text is None:
@@ -307,11 +376,9 @@ PROFESSIONAL BANKING INTELLIGENCE REPORT:"""
             return summary
 
         except Exception as e:
-            error_msg = str(e)
-            # Check if it's a quota error
-            if '429' in error_msg or 'RESOURCE_EXHAUSTED' in error_msg or 'quota' in error_msg.lower():
-                self.quota_exhausted = True
-                print(f"[ERROR] Gemini quota exhausted: {e}")
+            # Quota errors are already handled in _call_with_retry
+            # Return fallback summary for any errors
+            if self.quota_exhausted:
                 print(f"[WARNING] Returning basic summary without AI")
                 return self._create_fallback_summary(articles, sources_stats)
 

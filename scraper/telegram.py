@@ -21,38 +21,64 @@ if sys.platform == 'win32' and hasattr(sys.stdout, 'buffer'):
 
 
 class TelegramReporter:
-    """Send scraping reports to Telegram"""
+    """
+    Send scraping reports to Telegram
+
+    Uses two separate chat configurations:
+    - CHANNEL_CHAT_ID: Public channel for successful scraping results
+    - NOTIFICATION_CHAT: Personal chats for errors, tests, and notifications
+    """
 
     def __init__(self):
         self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
-        chat_id_str = os.getenv('TELEGRAM_CHAT_ID', '')
 
-        # Parse comma-separated chat IDs
-        self.chat_ids = [
+        # Channel chat ID for successful scraping (public channel with users)
+        channel_id_str = os.getenv('CHANNEL_CHAT_ID', '')
+        self.channel_chat_ids = [
             chat_id.strip()
-            for chat_id in chat_id_str.split(',')
+            for chat_id in channel_id_str.split(',')
             if chat_id.strip()
         ]
 
-        self.enabled = bool(self.bot_token and self.chat_ids)
+        # Notification chat IDs for errors, tests, and internal notifications
+        notification_id_str = os.getenv('NOTIFICATION_CHAT', '')
+        self.notification_chat_ids = [
+            chat_id.strip()
+            for chat_id in notification_id_str.split(',')
+            if chat_id.strip()
+        ]
+
+        self.enabled = bool(self.bot_token and (self.channel_chat_ids or self.notification_chat_ids))
 
         if not self.enabled:
             print("[INFO] Telegram reporting disabled (missing credentials)")
         else:
-            print(f"[INFO] Telegram reporting enabled for {len(self.chat_ids)} chat(s)")
+            if self.channel_chat_ids:
+                print(f"[INFO] Telegram channel enabled ({len(self.channel_chat_ids)} channel(s))")
+            if self.notification_chat_ids:
+                print(f"[INFO] Telegram notifications enabled ({len(self.notification_chat_ids)} chat(s))")
 
-    def send_message(self, message: str) -> bool:
+    def send_message(self, message: str, chat_ids: Optional[List[str]] = None) -> bool:
         """
-        Send a message to all configured Telegram chats
+        Send a message to specified Telegram chats
         If message exceeds Telegram limit, splits into multiple messages
 
         Args:
             message: Message text (supports HTML formatting)
+            chat_ids: List of chat IDs to send to. If None, uses notification chats
 
         Returns:
             True if sent successfully to at least one chat, False otherwise
         """
         if not self.enabled:
+            return False
+
+        # Use notification chats by default if no chat_ids specified
+        if chat_ids is None:
+            chat_ids = self.notification_chat_ids
+
+        if not chat_ids:
+            print("[WARNING] No chat IDs specified for message")
             return False
 
         # Split message if too long
@@ -62,7 +88,7 @@ class TelegramReporter:
         success_count = 0
         url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
 
-        for chat_id in self.chat_ids:
+        for chat_id in chat_ids:
             try:
                 # Send all message parts
                 for i, msg_part in enumerate(messages, 1):
@@ -157,9 +183,10 @@ class TelegramReporter:
             hours = seconds / 3600
             return f"{hours:.1f}h"
 
-    def send_scraping_report(self, stats: Dict) -> bool:
+    def send_scraping_report(self, stats: Dict, success: bool = True) -> bool:
         """
-        Send professional banking intelligence report for public channel
+        Send professional banking intelligence report for public channel (success)
+        OR error notification to personal chats (failure)
 
         Args:
             stats: Dictionary containing statistics
@@ -169,6 +196,7 @@ class TelegramReporter:
                 - total_saved: int (saved to database)
                 - session_summary: str (banking intelligence)
                 - errors: List of errors (optional)
+            success: If True, sends to CHANNEL_CHAT_ID; if False, sends to NOTIFICATION_CHAT
 
         Returns:
             True if sent successfully
@@ -180,33 +208,58 @@ class TelegramReporter:
             # Professional public channel format
             timestamp = stats['end_time'].strftime("%d.%m.%Y")
 
-            # Check if we have banking intelligence
-            if not stats.get('session_summary'):
-                # No intelligence to report
-                return False
+            if success:
+                # Send successful scraping to public channel
+                # Check if we have banking intelligence
+                if not stats.get('session_summary'):
+                    # No intelligence to report
+                    return False
 
-            message_parts = [
-                f"📊 <b>Azərbaycan Bank Sektoru</b>",
-                f"📅 {timestamp}",
-                "",
-                stats['session_summary']
-            ]
+                message_parts = [
+                    f"📊 <b>Azərbaycan Bank Sektoru</b>",
+                    f"📅 {timestamp}",
+                    "",
+                    stats['session_summary']
+                ]
 
-            # Only show errors if they exist (very rare, keep internal)
-            # Skip showing errors in public channel
+                message = "\n".join(message_parts)
 
-            message = "\n".join(message_parts)
+                # Send to channel (public)
+                return self.send_message(message, chat_ids=self.channel_chat_ids)
 
-            # send_message will automatically split if needed
-            return self.send_message(message)
+            else:
+                # Send failure notification to personal chats
+                duration = (stats['end_time'] - stats['start_time']).total_seconds()
+
+                message_parts = [
+                    "⚠️ <b>Scraping Incomplete</b>",
+                    "━━━━━━━━━━━━━━━━━━━━",
+                    "",
+                    f"📅 {timestamp}",
+                    f"⏱ Duration: {self.format_duration(duration)}",
+                    ""
+                ]
+
+                # Add error details if available
+                if stats.get('errors'):
+                    message_parts.append("<b>Errors:</b>")
+                    for error in stats['errors'][:5]:  # Limit to first 5 errors
+                        message_parts.append(f"❌ {error}")
+                else:
+                    message_parts.append("❌ Scraping failed or incomplete")
+
+                message = "\n".join(message_parts)
+
+                # Send to notification chats (personal)
+                return self.send_message(message, chat_ids=self.notification_chat_ids)
 
         except Exception as e:
-            print(f"[ERROR] Failed to build banking intelligence report: {e}")
+            print(f"[ERROR] Failed to build scraping report: {e}")
             return False
 
     def send_error_alert(self, error_message: str) -> bool:
         """
-        Send error alert to Telegram
+        Send error alert to notification chats (not public channel)
 
         Args:
             error_message: Error description
@@ -226,11 +279,12 @@ class TelegramReporter:
             f"🕒 {timestamp}"
         )
 
-        return self.send_message(message)
+        # Send to notification chats only (personal)
+        return self.send_message(message, chat_ids=self.notification_chat_ids)
 
     def send_start_notification(self, num_sources: int) -> bool:
         """
-        Send scraping start notification
+        Send scraping start notification to personal chats (not public channel)
 
         Args:
             num_sources: Number of sources to scrape
@@ -250,4 +304,5 @@ class TelegramReporter:
             "⏳ Processing..."
         )
 
-        return self.send_message(message)
+        # Send to notification chats only (personal)
+        return self.send_message(message, chat_ids=self.notification_chat_ids)
