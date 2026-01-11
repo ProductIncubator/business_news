@@ -1,6 +1,14 @@
 # Azerbaijan News Scraper
 
-Async news scraper for 8 major Azerbaijani news sources with AI summarization and Telegram reporting.
+Async news scraper for 10 major Azerbaijani news sources with AI summarization, dual Telegram messaging, and intelligent retry logic.
+
+> **Latest Updates (v2.0.0):**
+> - 🔄 Dual Telegram messaging system (separate monitoring & user channels)
+> - 🧪 TEST_MODE for safe testing without spamming users
+> - 🔄 Automatic retry logic for Gemini API overload errors
+> - 📊 Enhanced monitoring and health tracking
+>
+> See [CHANGELOG.md](docs/CHANGELOG.md) for full details.
 
 ## 🔗 Live Links
 
@@ -10,6 +18,7 @@ Async news scraper for 8 major Azerbaijani news sources with AI summarization an
 ## 📋 Table of Contents
 
 - [Features](#-features)
+- [What's New](#-whats-new-v200)
 - [Architecture](#-architecture)
 - [Data Flow](#-data-flow)
 - [Uniqueness Mechanisms](#-uniqueness-mechanisms)
@@ -20,18 +29,50 @@ Async news scraper for 8 major Azerbaijani news sources with AI summarization an
 - [Project Structure](#-project-structure)
 - [Automation](#-automation)
 - [Configuration](#-configuration)
+- [Changelog](#-changelog)
 
 ## 🚀 Features
 
-- **8 News Sources**: Banker.az, Marja.az, Report.az, Fed.az, Sonxeber.az, Iqtisadiyyat.az, Trend.az, APA.az
+- **10 News Sources**: Banker.az, Marja.az, Report.az, Fed.az, Sonxeber.az, Iqtisadiyyat.az, Trend.az, APA.az, Qafqazinfo.az, Oxu.az
 - **Async Architecture**: 3-4x faster than synchronous scraping
-- **AI Summarization**: Google Gemini 2.5 Flash powered article summaries
-- **Telegram Reports**: Automatic notifications with summaries
+- **AI Summarization**: Google Gemini 2.5 Flash powered article summaries with retry logic
+- **Dual Telegram Messaging**: Separate channels for monitoring and end users
+- **TEST_MODE**: Safe testing without spamming public channel
+- **Intelligent Retry**: Automatic retry with exponential backoff for API overloads
 - **PostgreSQL Storage**: Full article database with relationships
 - **Concurrent Processing**: Batch scraping with rate limiting
 - **Automated Scheduling**: Runs 3x daily via GitHub Actions (12:00, 16:00, 20:00 UTC)
 - **Next.js Frontend**: Modern web interface with time-based session differentiation
 - **Duplicate Detection**: URL-based uniqueness with database constraints
+
+## 🆕 What's New (v2.0.0)
+
+### Dual Telegram Messaging System
+Separate your monitoring from user-facing content:
+- **NOTIFICATION_CHAT**: Detailed system health, metrics, and errors for administrators
+- **CHANNEL_CHAT_ID**: Clean banking news for end users (no technical details)
+
+### TEST_MODE Protection
+Test safely without affecting your users:
+- Set `TEST_MODE=true` to route all messages to NOTIFICATION_CHAT
+- Public channel receives nothing during testing
+- Perfect for development and debugging
+
+### Gemini API Retry Logic
+Never lose data to temporary API overloads:
+- Automatic retry with exponential backoff (2s → 4s → 8s)
+- Configurable retry parameters
+- Handles 503 errors gracefully
+- Distinguishes transient vs. permanent failures
+
+### Enhanced Monitoring
+Know exactly what's happening:
+- Per-source breakdowns
+- Real-time health indicators
+- AI processing status
+- Duplicate detection stats
+
+See [CHANGELOG.md](docs/CHANGELOG.md) for complete details.
 
 ## 🏗️ Architecture
 
@@ -293,6 +334,8 @@ npm install
 
 ### 2. Configure Environment
 
+> **📖 Complete Configuration Guide**: See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for detailed explanations of all environment variables.
+
 Create `.env` in root:
 ```env
 DATABASE_URL=postgresql://user:password@host:port/dbname
@@ -305,8 +348,8 @@ TELEGRAM_BOT_TOKEN=your_bot_token
 TEST_MODE=true
 
 # Telegram chat IDs (dual messaging system)
-CHANNEL_CHAT_ID=-1003425585410           # Public channel - clean banking news for end users
-NOTIFICATION_CHAT=6192509415,-4879313859 # Monitoring chats - detailed performance metrics, system health (comma-separated)
+CHANNEL_CHAT_ID=your_public_channel_id           # Public channel - clean banking news for end users
+NOTIFICATION_CHAT=chat_id_1,chat_id_2             # Monitoring chats - detailed performance metrics, system health (comma-separated)
 
 # Optional: Gemini API retry configuration for handling 503/overload errors
 GEMINI_MAX_RETRIES=3                     # Number of retry attempts (default: 3)
@@ -731,6 +774,14 @@ Synchronous version backed up as: `scraper/main_sync_backup.py`
 ## 📝 License
 
 Private project for news aggregation.
+
+## 📋 Changelog
+
+For a detailed history of changes, see [CHANGELOG.md](docs/CHANGELOG.md).
+
+**Recent Updates:**
+- **v2.0.0** (2026-01-11): Dual Telegram messaging, TEST_MODE, Gemini retry logic
+- **v1.0.0**: Initial release with async scraping and AI summarization
 
 ---
 
