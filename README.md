@@ -12,7 +12,6 @@ Async news scraper for 10 major Azerbaijani news sources with AI summarization, 
 
 ## 🔗 Live Links
 
-- **🌐 Web Application**: [https://news-summarizer-omega.vercel.app/](https://news-summarizer-omega.vercel.app/)
 - **📱 Telegram Channel**: [https://t.me/batimess](https://t.me/batimess)
 
 ## 📋 Table of Contents
@@ -42,7 +41,6 @@ Async news scraper for 10 major Azerbaijani news sources with AI summarization, 
 - **PostgreSQL Storage**: Full article database with relationships
 - **Concurrent Processing**: Batch scraping with rate limiting
 - **Automated Scheduling**: Runs 3x daily via GitHub Actions (12:00, 16:00, 20:00 UTC)
-- **Next.js Frontend**: Modern web interface with time-based session differentiation
 - **Duplicate Detection**: URL-based uniqueness with database constraints
 
 ## 🆕 What's New (v2.0.0)
@@ -110,8 +108,6 @@ graph TB
 
     subgraph "Distribution"
         E1[Telegram Bot]
-        E2[Next.js Frontend]
-        E3[Vercel Hosting]
     end
 
     subgraph "Automation"
@@ -129,14 +125,11 @@ graph TB
     C2 --> C3
     C3 --> D3
     D3 --> E1
-    D1 --> E2
-    E2 --> E3
     F1 --> F2
     F2 --> B1
 
     style C1 fill:#4285f4
     style D1 fill:#336791
-    style E3 fill:#000000
     style F1 fill:#2088ff
 ```
 
@@ -151,7 +144,6 @@ sequenceDiagram
     participant DB as PostgreSQL
     participant AI as Gemini AI
     participant TG as Telegram
-    participant FE as Frontend
 
     GH->>SC: Trigger scrape (3x daily)
     SC->>SRC: Fetch article lists (async)
@@ -174,10 +166,6 @@ sequenceDiagram
 
     SC->>DB: Save summary with session ID
     SC->>TG: Send summary + stats
-
-    FE->>DB: Query summaries
-    DB-->>FE: Return data
-    FE-->>User: Display summaries
 ```
 
 ## 🔒 Uniqueness Mechanisms
@@ -268,7 +256,6 @@ flowchart LR
     subgraph "Step 3: Distribution"
         H --> I[Save to Database]
         I --> J[Send to Telegram]
-        I --> K[Display on Frontend]
     end
 
     style B fill:#4285f4
