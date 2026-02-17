@@ -167,7 +167,6 @@ Add these new secrets:
 - Google Gemini AI summarization
 - PostgreSQL storage with transactional saves
 - Telegram notifications
-- Next.js frontend
 - GitHub Actions automation (3x daily)
 - Banking news filtering
 - Duplicate detection

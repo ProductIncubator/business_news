@@ -311,12 +311,7 @@ requests_per_day = 1_500
 ### 1. Install Dependencies
 
 ```bash
-# Backend (Python)
 pip install -r scraper/requirements.txt
-
-# Frontend (Node.js)
-cd frontend
-npm install
 ```
 
 ### 2. Configure Environment
@@ -344,11 +339,6 @@ GEMINI_INITIAL_RETRY_DELAY=2             # Initial delay in seconds (default: 2)
 GEMINI_MAX_RETRY_DELAY=30                # Maximum delay in seconds (default: 30)
 ```
 
-Create `frontend/.env.local`:
-```env
-DATABASE_URL=postgresql://user:password@host:port/dbname
-```
-
 ### 3. Initialize Database
 
 ```bash
@@ -372,15 +362,6 @@ python scraper/scripts/test_banker_az.py
 ```bash
 python scraper/main.py
 ```
-
-### Run Frontend Development Server
-
-```bash
-cd frontend
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000)
 
 ### Test Individual Source
 
@@ -421,24 +402,6 @@ news_summarizer/
 │       ├── schema.sql            # PostgreSQL schema
 │       ├── verify_db.py          # Database verification
 │       └── test_*.py             # Individual scraper tests
-│
-├── frontend/                     # Next.js frontend
-│   ├── app/                      # Next.js App Router
-│   │   ├── page.tsx              # Homepage (summaries list)
-│   │   ├── summary/[id]/         # Summary detail page
-│   │   ├── api/                  # API routes
-│   │   │   ├── summaries/        # GET /api/summaries
-│   │   │   └── stats/            # GET /api/stats
-│   │   └── layout.tsx            # Root layout
-│   ├── components/               # React components
-│   │   ├── SummariesGrid.tsx     # Summary cards with pagination
-│   │   ├── ArticlesGrid.tsx      # Article cards with pagination
-│   │   └── Pagination.tsx        # Reusable pagination
-│   ├── lib/                      # Utilities
-│   │   ├── db.ts                 # Database queries
-│   │   └── utils.ts              # Helper functions (date formatting, etc)
-│   └── types/                    # TypeScript types
-│       └── index.ts              # Database model types
 │
 ├── .github/                      # GitHub Actions
 │   └── workflows/
@@ -559,14 +522,6 @@ CREATE TABLE news.scraping_summaries (
 - **lxml**: Fast HTML/XML parser
 - **requests**: HTTP library for synchronous requests
 
-### Frontend (Next.js)
-
-- **Next.js 15**: React framework with App Router
-- **TypeScript**: Type-safe JavaScript
-- **Tailwind CSS**: Utility-first CSS framework
-- **pg**: PostgreSQL client for Node.js
-- **React 19**: UI library
-
 ## 🎯 Output
 
 Each scraping session generates:
@@ -679,12 +634,6 @@ TEST_MODE=false python scraper/main.py
 
 **Important:** Always set `TEST_MODE=false` in GitHub Actions secrets for production runs!
 
-### 4. Frontend Display
-- Homepage with paginated summary cards
-- Detail pages with full AI reports
-- Time-differentiated sessions (12:00, 16:00, 20:00)
-- Article listings with metadata
-
 ## 📈 Statistics Tracked
 
 Each session tracks:
@@ -774,4 +723,4 @@ For a detailed history of changes, see [CHANGELOG.md](docs/CHANGELOG.md).
 
 **Built with ❤️ for Azerbaijan's banking sector**
 
-🤖 Powered by Google Gemini AI | 🗄️ PostgreSQL | ⚡ Next.js | 🐍 Python AsyncIO
+🤖 Powered by Google Gemini AI | 🗄️ PostgreSQL | 📱 Telegram | 🐍 Python AsyncIO
