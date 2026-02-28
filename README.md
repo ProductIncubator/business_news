@@ -585,18 +585,9 @@ The system uses **dual Telegram messaging** with separate purposes:
 **Audience:** Public channel users
 **Frequency:** Only on successful scraping
 
-```
-📊 Azərbaycan Bank Sektoru
-📅 11.01.2026
-
-🔥 ƏSAS TRENDLƏR
-Bank sektoru üzrə yeni tənzimlənmə dəyişiklikləri...
-
-💰 MALİYYƏ VƏ MAKRO
-• İnflyasiya: 7.1% (ötən ay 7.3%)
-• Bank mənfəəti: 15% artım
-...
-```
+<p align="center">
+  <img src="assets/channel.jpeg" width="320" alt="Live channel output example" />
+</p>
 
 **Key Benefits:**
 - **For users:** Clean, professional banking news without technical noise
