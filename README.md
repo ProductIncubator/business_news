@@ -1,5 +1,11 @@
 # Azerbaijan News Scraper
 
+<p align="center">
+  <a href="https://t.me/batimess">
+    <img src="assets/channel_qr_cropped.png" width="220" alt="Telegram @BATIMESS QR" />
+  </a>
+</p>
+
 Async news scraper for 10 major Azerbaijani news sources with AI summarization, dual Telegram messaging, and intelligent retry logic.
 
 > **Latest Updates (v2.0.0):**
