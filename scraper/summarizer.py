@@ -188,7 +188,7 @@ class GeminiSummarizer:
             return articles
 
         try:
-            print(f"\n[INFO] Filtering {len(articles)} articles for banking/finance relevance...")
+            print(f"\n[INFO] Filtering {len(articles)} articles for business/economy relevance...")
 
             # Prepare articles for filtering
             articles_list = []
@@ -200,34 +200,39 @@ class GeminiSummarizer:
 
             articles_text = "\n\n".join(articles_list)
 
-            # Filtering prompt - STRICT banking/finance only
-            filter_prompt = f"""Sən bank sektoru analitikiəsən. YALNIZ bank və maliyyə sektoruna BİRBAŞA aid olan xəbərləri seç.
+            # Filtering prompt - business/economy broad filter
+            filter_prompt = f"""Sən biznes və iqtisadiyyat analitikiəsən. Bank, maliyyə, iqtisadiyyat və biznesə aid xəbərləri seç.
 
-✅ QƏBUL ET (bank/maliyyə xəbərləri):
-- Bankların maliyyə nəticələri, mənfəət/zərər
-- Kredit, depozit, ipoteka məhsulları və faiz dərəcələri
-- Bank kapitalı, likvidlik, ehtiyatlar
-- Mərkəzi Bank qərarları (faiz dərəcəsi, ehtiyat norması)
+✅ QƏBUL ET:
+- Banklar, kredit, depozit, ipoteka, faiz dərəcələri
+- Mərkəzi Bank, Maliyyə Nazirliyi qərarları
 - İnflyasiya, manat məzənnəsi, ödəniş balansı
-- Maliyyə bazarları, fond birjası, istiqrazlar
-- Fintex, bank texnologiyaları, kartlar, ödəniş sistemləri
-- Bank tənzimlənməsi, lisenziyalar, qanunlar
-- IMF/Dünya Bankı kreditləri və proqnozları
+- Maliyyə bazarları, fond birjası, istiqrazlar, investisiyalar
+- Fintech, ödəniş sistemləri, kartlar
+- İqtisadi artım, ÜDM, dövlət büdcəsi, vergilər
+- Sahibkarlıq, şirkətlər, startaplar, biznes fəaliyyəti
+- Tikinti və daşınmaz əmlak bazarı
+- Neft, qaz, enerji sektoru (qiymət, ixrac, gəlir)
+- İdxal, ixrac, ticarət balansı, gömrük
+- Sığorta, fond, pensiya sistemi
+- İşsizlik, əmək haqqı, əmək bazarı statistikası
+- IMF, Dünya Bankı, EBRD proqnoz və kreditləri
+- Xarici investisiyalar, iqtisadi əməkdaşlıq müqavilələri
 
-❌ REDD ET (bank deyil):
-- Ümumi siyasət, hökumət təyinatları
-- Azad olunmuş ərazilər, dövlət quruculuğu
-- İnfrastruktur layihələri (maliyyə aspekti yoxdursa)
+❌ REDD ET:
+- Siyasi təyinatlar və kadr dəyişiklikləri (iqtisadi əsas yoxdursa)
+- Azad olunmuş ərazilər, dövlət quruculuğu (maliyyə aspekti yoxdursa)
 - Hüquq-mühafizə, məhkəmələr, prokurorluq
-- Beynəlxalq münasibətlər, diplomatiya
-- Müdafiə, təhlükəsizlik, hərbi məsələlər
+- Diplomatiya, xarici siyasət (ticarət/investisiya yoxdursa)
+- Müdafiə, hərbi məsələlər
+- İdman, mədəniyyət, sosial hadisələr
 
 XƏBƏRLƏR:
 {articles_text}
 
-QAYDA: Əgər xəbər BANKLAR, KREDİT, DEPOZIT, FAİZ, MƏZƏNNƏ və ya MALİYYƏ haqqında deyilsə - reddet.
+QAYDA: Xəbər iqtisadiyyat, biznes, maliyyə, bank, ticarət, investisiya və ya energetika ilə bağlıdırsa - QƏBUL ET. Yalnız siyasi, hərbi və ya sosial məzmunlu xəbərləri rədd et.
 
-BİRBAŞA bank/maliyyə xəbərlərinin nömrələri (vergüllə): """
+Biznes/iqtisadiyyat xəbərlərinin nömrələri (vergüllə): """
 
             # Call API with retry logic
             response = self._call_with_retry(filter_prompt, "Article filtering")
@@ -244,7 +249,7 @@ BİRBAŞA bank/maliyyə xəbərlərinin nömrələri (vergüllə): """
                 relevant_indices = [int(x.strip()) - 1 for x in relevant_indices_str.split(',') if x.strip().isdigit()]
                 relevant_articles = [articles[i] for i in relevant_indices if 0 <= i < len(articles)]
 
-                print(f"[SUCCESS] Filtered: {len(relevant_articles)}/{len(articles)} articles are banking-relevant")
+                print(f"[SUCCESS] Filtered: {len(relevant_articles)}/{len(articles)} articles are business/economy-relevant")
                 return relevant_articles
 
             except Exception as parse_error:
